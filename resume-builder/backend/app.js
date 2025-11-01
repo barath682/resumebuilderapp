@@ -10,7 +10,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5174",                       // for local dev
-  "https://resumebuilderapp-beige.vercel.app"    // your Vercel frontend
+  "https://resumebuilderapp1.vercel.app"    // your Vercel frontend
 ];
 
 app.use(cors({
