@@ -8,10 +8,16 @@ connectDB();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5174",                       // for local dev
+  "https://resumebuilderapp-beige.vercel.app"    // your Vercel frontend
+];
+
 app.use(cors({
-  origin: "http://localhost:5174",
+  origin: allowedOrigins,
   credentials: true
 }));
+
 
 
 app.use(express.json());
