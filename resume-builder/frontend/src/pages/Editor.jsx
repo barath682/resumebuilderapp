@@ -70,6 +70,86 @@
 // };
 
 // export default Editor;
+// import React, { useState, useRef } from "react";
+// import ResumeForm from "../components/Resume/ResumeForm";
+// import ResumePreview from "../components/Resume/ResumePreview";
+// import TemplateOne from "../components/Resume/Templates/TemplateOne";
+// import TemplateTwo from "../components/Resume/Templates/TemplateTwo";
+// import TemplateThree from "../components/Resume/Templates/TemplateThree";
+// import jsPDF from "jspdf";
+// import html2canvas from "html2canvas";
+
+// const TEMPLATES = {
+//   one: TemplateOne,
+//   two: TemplateTwo,
+//   three: TemplateThree,
+// };
+
+// const Editor = () => {
+//   const [data, setData] = useState({
+//     personal: { name: "", email: "", phone: "" },
+//     education: { degree: "", institution: "", year: "" },
+//     experience: { description: "" },
+//     skills: "",
+//   });
+
+//   const [selectedTemplate, setSelectedTemplate] = useState("one");
+//   const previewRef = useRef();
+
+//   const exportPDF = async () => {
+//     const element = previewRef.current;
+//     const canvas = await html2canvas(element);
+//     const imgData = canvas.toDataURL("image/png");
+//     const pdf = new jsPDF("p", "pt", "a4");
+//     const pdfWidth = pdf.internal.pageSize.getWidth();
+//     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+//     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+//     pdf.save("resume.pdf");
+//   };
+
+//   const TemplateComponent = TEMPLATES[selectedTemplate];
+
+//   return (
+//     <div className="min-h-screen p-10 bg-gradient-to-br from-indigo-100 via-white to-blue-100 flex flex-col lg:flex-row gap-8 transition-all duration-300">
+//       {/* Left Panel - Form */}
+//       <div className="flex-1 bg-white rounded-2xl shadow-2xl p-6 overflow-auto max-h-[90vh] border border-gray-200 hover:shadow-indigo-200 transition-shadow duration-300">
+//         <h2 className="text-2xl font-bold mb-6 text-indigo-700 text-center">Resume Details</h2>
+//         <ResumeForm data={data} setData={setData} />
+
+//         <div className="my-6 text-center">
+//           <label className="mr-3 font-semibold text-gray-700 text-lg">Select Template:</label>
+//           <select
+//             value={selectedTemplate}
+//             onChange={(e) => setSelectedTemplate(e.target.value)}
+//             className="border border-indigo-300 rounded-lg px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none transition duration-200"
+//           >
+//             <option value="one">Template One</option>
+//             <option value="two">Template Two</option>
+//             <option value="three">Template Three</option>
+//           </select>
+//         </div>
+        
+
+//         <div className="flex justify-center">
+//           <button
+//             onClick={exportPDF}
+//             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-indigo-700 hover:to-blue-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transition-transform transform hover:scale-105 duration-200"
+//           >
+//             Export as PDF
+//           </button>
+//         </div>
+//       </div>
+
+//       {/* Right Panel - Preview */}
+//       <div className="flex-1 bg-white rounded-2xl shadow-2xl p-6 overflow-auto max-h-[90vh] border border-gray-200 hover:shadow-blue-200 transition-shadow duration-300">
+//         <h2 className="text-2xl font-bold mb-6 text-indigo-700 text-center">Live Preview</h2>
+//         <ResumePreview ref={previewRef} data={data} TemplateComponent={TemplateComponent} />
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Editor;
 import React, { useState, useRef } from "react";
 import ResumeForm from "../components/Resume/ResumeForm";
 import ResumePreview from "../components/Resume/ResumePreview";
@@ -78,12 +158,16 @@ import TemplateTwo from "../components/Resume/Templates/TemplateTwo";
 import TemplateThree from "../components/Resume/Templates/TemplateThree";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import axios from "axios"; // For POST to backend
 
 const TEMPLATES = {
   one: TemplateOne,
   two: TemplateTwo,
   three: TemplateThree,
 };
+
+// NEW (correct for Vite/frontends)
+const API_BASE = import.meta.env.VITE_REACT_APP_API_URL || "https://resumebuilderapp3.onrender.com";
 
 const Editor = () => {
   const [data, setData] = useState({
@@ -94,6 +178,8 @@ const Editor = () => {
   });
 
   const [selectedTemplate, setSelectedTemplate] = useState("one");
+  const [publicId, setPublicId] = useState(""); // For sharing link
+
   const previewRef = useRef();
 
   const exportPDF = async () => {
@@ -105,6 +191,22 @@ const Editor = () => {
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
     pdf.save("resume.pdf");
+  };
+
+  // Example save handler - replace with your real save logic
+  const handleSave = async () => {
+    try {
+      // Replace with your authenticated POST request!
+      const res = await axios.post(`${API_BASE}/resume`, {
+        template: selectedTemplate,
+        data,
+      }, { withCredentials: true }); // Only if you use cookies
+      // Save publicId from backend response
+      setPublicId(res.data.publicId);
+      alert("Resume saved! You can now share your public link.");
+    } catch (err) {
+      alert("Error saving resume.");
+    }
   };
 
   const TemplateComponent = TEMPLATES[selectedTemplate];
@@ -129,8 +231,13 @@ const Editor = () => {
           </select>
         </div>
         
-
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={handleSave}
+            className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-blue-700 hover:to-green-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transition-transform transform hover:scale-105 duration-200"
+          >
+            Save & Generate Link
+          </button>
           <button
             onClick={exportPDF}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-indigo-700 hover:to-blue-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transition-transform transform hover:scale-105 duration-200"
@@ -143,7 +250,7 @@ const Editor = () => {
       {/* Right Panel - Preview */}
       <div className="flex-1 bg-white rounded-2xl shadow-2xl p-6 overflow-auto max-h-[90vh] border border-gray-200 hover:shadow-blue-200 transition-shadow duration-300">
         <h2 className="text-2xl font-bold mb-6 text-indigo-700 text-center">Live Preview</h2>
-        <ResumePreview ref={previewRef} data={data} TemplateComponent={TemplateComponent} />
+        <ResumePreview ref={previewRef} data={data} TemplateComponent={TemplateComponent} publicId={publicId} />
       </div>
     </div>
   );
